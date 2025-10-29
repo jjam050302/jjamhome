@@ -3,4 +3,4 @@
 
 미남 시뮬레이션 : https://jjam050302.github.io/jjamhome/미남.html
 
-플래너 : https://jjam050302.github.io/jjamhome/플래너.html
+투두리스트 : https://jjam050302.github.io/jjamhome/투두리스트.html
