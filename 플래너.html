@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporal Chronicle - Keeper of Time</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background: linear-gradient(135deg, #1a1410 0%, #2d1f1a 50%, #1a1410 100%);
+            color: #e8dcc4;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.05) 2px, rgba(0,0,0,.05) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.05) 2px, rgba(0,0,0,.05) 4px);
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            animation: noiseAnim 0.5s infinite;
+        }
+        
+        @keyframes noiseAnim {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-5%, -5%); }
+            20% { transform: translate(-10%, 5%); }
+            30% { transform: translate(5%, -10%); }
+            40% { transform: translate(-5%, 15%); }
+            50% { transform: translate(-10%, 5%); }
+            60% { transform: translate(15%, 0); }
+            70% { transform: translate(0, 10%); }
+            80% { transform: translate(-15%, 0); }
+            90% { transform: translate(10%, 5%); }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            padding: 2rem 0;
+        }
+        
+        .title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 700;
+            letter-spacing: 0.3rem;
+            background: linear-gradient(135deg, #d4af37 0%, #f4e4c1 50%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            margin-bottom: 0.5rem;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes titleGlow {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 10px rgba(212, 175, 55, 0.3)); }
+            50% { filter: brightness(1.2) drop-shadow(0 0 20px rgba(212, 175, 55, 0.5)); }
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            letter-spacing: 0.5rem;
+            color: #a8997a;
+            font-style: italic;
+        }
+        
+        .decorative-line {
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            margin: 1rem auto;
+            position: relative;
+        }
+        
+        .decorative-line::before,
+        .decorative-line::after {
+            content: '◆';
+            position: absolute;
+            color: #d4af37;
+            font-size: 0.8rem;
+            top: -7px;
+        }
+        
+        .decorative-line::before { left: -20px; }
+        .decorative-line::after { right: -20px; }
+        
+        .time-display {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: #d4af37;
+            letter-spacing: 0.2rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .input-section {
+            background: rgba(42, 30, 24, 0.8);
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(212, 175, 55, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .input-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(212, 175, 55, 0.02) 20px,
+                    rgba(212, 175, 55, 0.02) 40px
+                );
+            pointer-events: none;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            color: #d4af37;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.1rem;
+            text-transform: uppercase;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            background: rgba(26, 20, 16, 0.6);
+            border: 1px solid #8b7355;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            color: #e8dcc4;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            background: rgba(26, 20, 16, 0.8);
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .priority-selector {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .priority-option {
+            flex: 1;
+            min-width: 120px;
+            padding: 1rem;
+            background: rgba(26, 20, 16, 0.6);
+            border: 2px solid #8b7355;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.1rem;
+        }
+        
+        .priority-option:hover {
+            transform: translateY(-3px);
+            border-color: #d4af37;
+        }
+        
+        .priority-option.selected {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.1));
+            border-color: #d4af37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+        
+        .priority-high { border-color: #c94040 !important; }
+        .priority-high.selected { border-color: #ff5555 !important; box-shadow: 0 0 20px rgba(255, 85, 85, 0.3); }
+        
+        .priority-medium { border-color: #d4af37 !important; }
+        .priority-medium.selected { border-color: #f4e4c1 !important; }
+        
+        .priority-low { border-color: #6b8e7f !important; }
+        .priority-low.selected { border-color: #8fb8a5 !important; box-shadow: 0 0 20px rgba(143, 184, 165, 0.3); }
+        
+        .btn {
+            background: linear-gradient(135deg, #d4af37 0%, #8b7355 100%);
+            border: none;
+            color: #1a1410;
+            padding: 1rem 2.5rem;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .tasks-section {
+            background: rgba(42, 30, 24, 0.6);
+            border: 2px solid #8b7355;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: #d4af37;
+            text-align: center;
+            letter-spacing: 0.3rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+        
+        .task-item {
+            background: rgba(26, 20, 16, 0.8);
+            border-left: 4px solid #d4af37;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+            animation: taskAppear 0.5s ease;
+        }
+        
+        @keyframes taskAppear {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .task-item:hover {
+            transform: translateX(10px);
+            box-shadow: -5px 5px 20px rgba(212, 175, 55, 0.2);
+        }
+        
+        .task-item.priority-high {
+            border-left-color: #ff5555;
+            background: rgba(255, 85, 85, 0.05);
+        }
+        
+        .task-item.priority-low {
+            border-left-color: #8fb8a5;
+            background: rgba(143, 184, 165, 0.05);
+        }
+        
+        .task-item.completed {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.5rem;
+            gap: 1rem;
+        }
+        
+        .task-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.3rem;
+            color: #d4af37;
+            flex: 1;
+        }
+        
+        .task-priority {
+            font-size: 0.9rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+        }
+        
+        .task-priority.high {
+            background: rgba(255, 85, 85, 0.2);
+            color: #ff8888;
+            border: 1px solid #ff5555;
+        }
+        
+        .task-priority.medium {
+            background: rgba(212, 175, 55, 0.2);
+            color: #d4af37;
+            border: 1px solid #d4af37;
+        }
+        
+        .task-priority.low {
+            background: rgba(143, 184, 165, 0.2);
+            color: #8fb8a5;
+            border: 1px solid #8fb8a5;
+        }
+        
+        .task-description {
+            color: #c4b5a0;
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            line-height: 1.6;
+        }
+        
+        .task-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.95rem;
+            color: #a8997a;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .task-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        
+        .task-btn {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid #8b7355;
+            color: #d4af37;
+            padding: 0.5rem 1rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .task-btn:hover {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #d4af37;
+            transform: translateY(-2px);
+        }
+        
+        .task-btn.delete {
+            border-color: #c94040;
+            color: #ff5555;
+        }
+        
+        .task-btn.delete:hover {
+            background: rgba(255, 85, 85, 0.1);
+            border-color: #ff5555;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #a8997a;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .input-section, .tasks-section {
+                padding: 1.5rem;
+            }
+            
+            .priority-selector {
+                flex-direction: column;
+            }
+            
+            .priority-option {
+                min-width: 100%;
+            }
+            
+            .task-header {
+                flex-direction: column;
+            }
+            
+            .task-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+    
+    <div class="container">
+        <header>
+            <h1 class="title">TEMPORAL CHRONICLE</h1>
+            <div class="decorative-line"></div>
+            <p class="subtitle">Keeper of Time</p>
+            <div class="time-display" id="currentTime"></div>
+        </header>
+        
+        <div class="input-section">
+            <div class="form-group">
+                <label>◆ Mission Title ◆</label>
+                <input type="text" id="taskTitle" placeholder="Record your mission...">
+            </div>
+            
+            <div class="form-group">
+                <label>◆ Mission Details ◆</label>
+                <textarea id="taskDescription" placeholder="Describe the story of this moment..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>◆ Time Marker ◆</label>
+                <input type="datetime-local" id="taskDate">
+            </div>
+            
+            <div class="form-group">
+                <label>◆ Priority Level ◆</label>
+                <div class="priority-selector">
+                    <div class="priority-option priority-high" data-priority="high">
+                        <div>Urgent</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.3rem;">CRITICAL</div>
+                    </div>
+                    <div class="priority-option priority-medium selected" data-priority="medium">
+                        <div>Standard</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.3rem;">NORMAL</div>
+                    </div>
+                    <div class="priority-option priority-low" data-priority="low">
+                        <div>Minor</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.3rem;">LOW</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn" onclick="addTask()">Engrave Time</button>
+            </div>
+        </div>
+        
+        <div class="tasks-section">
+            <h2 class="section-title">◆ Timeline Records ◆</h2>
+            <div id="tasksList"></div>
+        </div>
+    </div>
+    
+    <script>
+        let tasks = [];
+        let selectedPriority = 'medium';
+        
+        // 시간 표시
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // 우선순위 선택
+        document.querySelectorAll('.priority-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.priority-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                selectedPriority = this.dataset.priority;
+            });
+        });
+        
+        // 작업 추가
+        function addTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const date = document.getElementById('taskDate').value;
+            
+            if (!title) {
+                alert('Mission title cannot be empty!');
+                return;
+            }
+            
+            const task = {
+                id: Date.now(),
+                title,
+                description,
+                date: date || new Date().toISOString().slice(0, 16),
+                priority: selectedPriority,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+            
+            tasks.unshift(task);
+            renderTasks();
+            clearForm();
+        }
+        
+        // 작업 렌더링
+        function renderTasks() {
+            const tasksList = document.getElementById('tasksList');
+            
+            if (tasks.length === 0) {
+                tasksList.innerHTML = '<div class="empty-state">No records in the timeline yet...<br>Begin recording your first journey</div>';
+                return;
+            }
+            
+            tasksList.innerHTML = tasks.map(task => {
+                const priorityLabel = {
+                    high: 'Urgent',
+                    medium: 'Standard',
+                    low: 'Minor'
+                };
+                
+                const dateObj = new Date(task.date);
+                const formattedDate = dateObj.toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="task-item priority-${task.priority} ${task.completed ? 'completed' : ''}">
+                        <div class="task-header">
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-priority ${task.priority}">${priorityLabel[task.priority]}</div>
+                        </div>
+                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                        <div class="task-meta">
+                            <span>⏰ ${formattedDate}</span>
+                            <span>📅 ${new Date(task.createdAt).toLocaleDateString('ko-KR')}</span>
+                        </div>
+                        <div class="task-actions">
+                            <button class="task-btn" onclick="toggleComplete(${task.id})">
+                                ${task.completed ? 'Restore' : 'Complete'}
+                            </button>
+                            <button class="task-btn delete" onclick="deleteTask(${task.id})">
+                                Erase
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 작업 완료 토글
+        function toggleComplete(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+            }
+        }
+        
+        // Delete task
+        function deleteTask(id) {
+            if (confirm('Are you sure you want to erase this record from time?')) {
+                tasks = tasks.filter(t => t.id !== id);
+                renderTasks();
+            }
+        }
+        
+        // 폼 초기화
+        function clearForm() {
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+            document.getElementById('taskDate').value = '';
+            document.querySelectorAll('.priority-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector('.priority-option[data-priority="medium"]').classList.add('selected');
+            selectedPriority = 'medium';
+        }
+        
+        // 초기 렌더링
+        renderTasks();
+    </script>
+</body>
+</html>
